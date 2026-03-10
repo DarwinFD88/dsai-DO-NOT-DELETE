@@ -1,7 +1,6 @@
 #flask
 #
 
-
 from flask import Flask, render_template, request
 import joblib
 import os
@@ -41,13 +40,25 @@ def main():
 def dbs():
     return(render_template("dbs.html"))
 
-
 @app.route("/dbs_prediction",methods=["GET","POST"])
 def dbs_prediction():
     q = float(request.form.get("q"))
     model = joblib.load("DBS_SGD_model.pkl")
     r = model.predict([[q]])
-    return(render_template("dbs_prediction.html",r=r))
+    return(render_template("dbs_prediction.html",r=r[0][0]))
+
+@app.route("/text_inference",methods=["GET","POST"])
+def text_inference():
+    return(render_template("text_inference.html"))
+
+@app.route("/text_result",methods=["GET","POST"])
+def text_result():
+    q = request.form.get("q")
+    text_model = joblib.load("model.pkl")
+    vectorizer = joblib.load("vectorizer.pkl")
+    X_emb = vectorizer.transform([q])
+    r = text_model.predict(X_emb)
+    return(render_template("text_result.html",r=r[0]))
 
 @app.route("/chatbot",methods=["GET","POST"])
 def chatbot():
@@ -66,7 +77,7 @@ def llama_result():
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": q}])
     r = r.choices[0].message.content
-    return(render_template("llama_result.html",r=r))
+    return(render_template("llama_result.html",r=r[0][0]))
 
 @app.route("/paynow",methods=["GET","POST"])
 def paynow():
